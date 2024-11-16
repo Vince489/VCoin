@@ -3,24 +3,35 @@ import nacl from 'tweetnacl';
 import bip39 from 'bip39';
 import { PublicKey } from './PublicKey.js';
 
-// Utility function to handle seed truncation to 32 bytes
+/**
+ * Utility function to truncate a seed phrase to 32 bytes.
+ * @param {string} seedPhrase - The mnemonic seed phrase.
+ * @returns {Uint8Array} A 32-byte truncated seed.
+ */
 function getTruncatedSeed(seedPhrase) {
-  // Convert seed phrase to a seed (Buffer), then truncate to the first 32 bytes
   const seed = bip39.mnemonicToSeedSync(seedPhrase);
   return seed.slice(0, 32); // Ensure the seed is exactly 32 bytes
 }
 
+/**
+ * Represents a cryptographic key pair (public and private keys).
+ */
 class Keypair {
+  /**
+   * Creates a new Keypair instance.
+   * @param {Uint8Array|string|null} publicKey - The public key (Uint8Array or Base58 string). Defaults to null.
+   * @param {Uint8Array|string|null} privateKey - The private key (Uint8Array or Base58 string). Defaults to null.
+   * @throws {Error} If provided keys are in invalid formats.
+   */
   constructor(publicKey = null, privateKey = null) {
     if (publicKey && privateKey) {
-      // Validate and set the public key (supports Uint8Array or Base58 encoded string)
+      // Validate and set the public key
       if (publicKey instanceof Uint8Array) {
-        this.publicKey = new PublicKey(publicKey); // Direct Uint8Array assignment
+        this.publicKey = new PublicKey(publicKey);
       } else if (typeof publicKey === 'string') {
-        // Base58-decoded string support
         this.publicKey = new PublicKey(bs58.decode(publicKey));
       } else {
-        throw new Error("Invalid public key format. Supported formats: Uint8Array or Base58-encoded string.");
+        throw new Error('Invalid public key format. Supported formats: Uint8Array or Base58-encoded string.');
       }
 
       // Validate and set the private key
@@ -29,79 +40,97 @@ class Keypair {
       } else if (typeof privateKey === 'string') {
         this.privateKey = bs58.decode(privateKey);
       } else {
-        throw new Error("Invalid private key format. Supported formats: Uint8Array or Base58-encoded string.");
+        throw new Error('Invalid private key format. Supported formats: Uint8Array or Base58-encoded string.');
       }
     } else {
-      // If no keys provided, generate a new key pair
+      // Generate new keys if none are provided
       const { publicKey, secretKey } = nacl.sign.keyPair();
-      this.publicKey = new PublicKey(publicKey); // Create PublicKey instance with generated key
+      this.publicKey = new PublicKey(publicKey);
       this.privateKey = secretKey;
     }
   }
 
-  // Static method to create a Keypair from an existing secret key (private key)
+  /**
+   * Creates a Keypair from an existing private key.
+   * @param {Uint8Array} privateKey - The private key as a Uint8Array.
+   * @returns {Keypair} A new Keypair instance.
+   * @throws {Error} If the private key is not a Uint8Array.
+   */
   static fromSecret(privateKey) {
     if (!(privateKey instanceof Uint8Array)) {
-      throw new Error("PrivateKey key must be a Uint8Array.");
+      throw new Error('Private key must be a Uint8Array.');
     }
-    
-    // Use nacl to derive the public key from the private secret key
-    const publicKey = nacl.sign.keyPair.fromSecretKey(secretKey).publicKey;
-
-    // Return a new Keypair instance using the derived public key and the provided secret key
-    return new Keypair(publicKey, secretKey);
+    const publicKey = nacl.sign.keyPair.fromSecretKey(privateKey).publicKey;
+    return new Keypair(publicKey, privateKey);
   }
 
-  // Static method to generate a new Keypair, returning the keys as raw Uint8Array
+  /**
+   * Generates a new Keypair.
+   * @returns {Keypair} A new Keypair instance.
+   */
   static generate() {
     const { publicKey, secretKey: privateKey } = nacl.sign.keyPair();
-    return new Keypair(publicKey, privateKey); // Return the raw Uint8Array keys
+    return new Keypair(publicKey, privateKey);
   }
 
-  // Static method to generate a Keypair from a seed phrase
+  /**
+   * Creates a Keypair from a seed phrase.
+   * @param {string} seedPhrase - The mnemonic seed phrase.
+   * @returns {Keypair} A new Keypair instance.
+   */
   static fromSeedPhrase(seedPhrase) {
-    const seed = getTruncatedSeed(seedPhrase); // Truncate the seed to 32 bytes
+    const seed = getTruncatedSeed(seedPhrase);
     const { publicKey, secretKey: privateKey } = nacl.sign.keyPair.fromSeed(seed);
-    return new Keypair(publicKey, privateKey); // Return the raw Uint8Array keys
+    return new Keypair(publicKey, privateKey);
   }
 
-  // Sign a message and return the signature as a Base58-encoded string
+  /**
+   * Signs a message and returns a Base58-encoded signature.
+   * @param {string} message - The message to sign.
+   * @returns {string} The Base58-encoded signature.
+   */
   sign(message) {
     const messageData = new TextEncoder().encode(message);
     const signature = nacl.sign.detached(messageData, this.privateKey);
-    return bs58.encode(signature); // Return Base58-encoded signature
+    return bs58.encode(signature);
   }
 
-  // Static method to verify a signed message using a Base58-encoded signature and public key
+  /**
+   * Verifies a signed message.
+   * @param {string} message - The original message.
+   * @param {string} signature - The Base58-encoded signature.
+   * @param {PublicKey} publicKey - The public key to verify the signature.
+   * @returns {boolean} `true` if the signature is valid, otherwise `false`.
+   */
   static verify(message, signature, publicKey) {
     const decodedSignature = bs58.decode(signature);
-    const decodedPublicKey = publicKey.toBytes(); // Convert PublicKey to raw Uint8Array
-  
+    const decodedPublicKey = publicKey.toBytes();
     const messageUint8 = new TextEncoder().encode(message);
     return nacl.sign.detached.verify(messageUint8, decodedSignature, decodedPublicKey);
   }
-  
 
-  // Utility method to encode the keys to Base58 (for use in other methods or externally)
+  /**
+   * Encodes the public and private keys to Base58.
+   * @returns {Object} An object containing the Base58-encoded public and private keys.
+   */
   encodeKeys() {
     return {
-      publicKey: bs58.encode(this.publicKey.toBytes()),  // Ensure public key is encoded correctly
-      privateKey: bs58.encode(this.privateKey),  // Ensure private key is Base58 encoded
+      publicKey: bs58.encode(this.publicKey.toBytes()),
+      privateKey: bs58.encode(this.privateKey),
     };
   }
 
-  // Utility method to decode the Base58-encoded keys and return a new Keypair
+  /**
+   * Decodes Base58-encoded keys and creates a new Keypair.
+   * @param {string} encodedPublicKey - The Base58-encoded public key.
+   * @param {string} encodedPrivateKey - The Base58-encoded private key.
+   * @returns {Keypair} A new Keypair instance.
+   */
   static decodeKeys(encodedPublicKey, encodedPrivateKey) {
     const publicKey = bs58.decode(encodedPublicKey);
     const privateKey = bs58.decode(encodedPrivateKey);
-    return new Keypair(publicKey, privateKey); // Return Keypair from raw Uint8Array keys
+    return new Keypair(publicKey, privateKey);
   }
 }
 
-// Export the Keypair class
 export { Keypair };
-
-
-
-
-

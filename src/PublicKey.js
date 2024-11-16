@@ -1,7 +1,14 @@
 import bs58 from 'bs58';
 
-// PublicKey class to encapsulate public key functionality
+/**
+ * Represents a public key and provides utilities for working with public keys.
+ */
 class PublicKey {
+  /**
+   * Constructs a PublicKey instance.
+   * @param {Uint8Array|string} publicKey - The public key as a Uint8Array or a Base58-encoded string.
+   * @throws {Error} If the provided public key format is invalid.
+   */
   constructor(publicKey) {
     if (publicKey instanceof Uint8Array) {
       this.publicKey = publicKey; // Store the public key as Uint8Array
@@ -13,23 +20,38 @@ class PublicKey {
     }
   }
 
-  // Static method to decode a Base58-encoded public key into a PublicKey instance
+  /**
+   * Decodes a Base58-encoded public key into a PublicKey instance.
+   * @param {string} encodedKey - The Base58-encoded public key.
+   * @returns {PublicKey} A new PublicKey instance with the decoded key.
+   */
   static decode(encodedKey) {
     const decodedKey = bs58.decode(encodedKey);
     return new PublicKey(decodedKey); // Return a new instance of PublicKey
   }
 
-  // Return the public key as a raw Buffer (byte array)
+  /**
+   * Returns the public key as a raw Buffer (byte array).
+   * @returns {Buffer} The public key as a Buffer.
+   */
   toBuffer() {
     return Buffer.from(this.publicKey);
   }
 
-  // Return the public key as a byte array (raw data)
+  /**
+   * Returns the public key as a raw Uint8Array.
+   * @returns {Uint8Array} The public key as a byte array.
+   */
   toBytes() {
     return this.publicKey;
   }
 
-  // Utility method to compare two PublicKey instances
+  /**
+   * Compares this PublicKey with another PublicKey instance.
+   * @param {PublicKey} otherPublicKey - The other PublicKey instance to compare.
+   * @returns {boolean} True if the public keys are equal, otherwise false.
+   * @throws {Error} If the provided argument is not a PublicKey instance.
+   */
   equals(otherPublicKey) {
     if (!(otherPublicKey instanceof PublicKey)) {
       throw new Error("Comparison requires a PublicKey instance.");
@@ -38,12 +60,18 @@ class PublicKey {
     return Buffer.compare(this.publicKey, otherPublicKey.toBytes()) === 0;
   }
 
-  // Encode the public key as a Base58 string
+  /**
+   * Encodes the public key as a Base58 string.
+   * @returns {string} The Base58-encoded public key.
+   */
   encode() {
     return bs58.encode(this.publicKey);
   }
 
-  // Utility method to get the public key as a string
+  /**
+   * Returns the public key as a Base58-encoded string.
+   * @returns {string} The public key as a string.
+   */
   toString() {
     return this.encode();
   }
