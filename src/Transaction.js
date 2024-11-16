@@ -53,7 +53,7 @@ class Transaction {
 
   // Sign the transaction with keypair(s)
   sign(keypairs) {
-    const message = this.compileMessage(); // You may need to define this function
+    const message = this.compileMessage(); 
     this.signatures = keypairs.map(keypair => {
       const signature = keypair.sign(message); // Use the sign method from Keypair class
       return { publicKey: keypair.publicKey, signature };
