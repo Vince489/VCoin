@@ -1,7 +1,7 @@
 import { Keypair } from "./Keypair.js";
-import { TransactionInstruction } from "./src/TransactionInstruction.js";
-import { Transaction } from "./src/Transaction.js";
-import { Blockchain } from "./src/Blockchain.js";
+import { TransactionInstruction } from "./TransactionInstruction.js";
+import { Transaction } from "./Transaction.js";
+import { Blockchain } from "./Blockchain.js";
 import { Block } from "./src/Block.js";
 import bs58 from "bs58";
 

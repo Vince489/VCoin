@@ -1,6 +1,5 @@
 // blockchain.js
 import { Block } from './Block.js';
-import { Transaction } from './Transaction.js';  // Import Transaction class
 
 class Blockchain {
     constructor(name) {
