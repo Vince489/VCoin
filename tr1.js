@@ -8,6 +8,7 @@ class Transaction {
     this.signatures = [];                 // Array to store signatures
     this.lastValidBlockHeight = null;     // Optional: For transaction validity
     this.recentBlockhash = null;          // Optional: Blockhash for nonces
+    this.details = {};                    // Transaction details (from, to, amount)
   }
 
   // Accessor for retrieving the primary signature
@@ -77,7 +78,7 @@ class Transaction {
       instructions: this.instructions,
       signatures: this.signatures.map(({ publicKey, signature }) => ({
         publicKey: publicKey.toString(),  // Ensure publicKey is serialized as a string
-        signature: signature,             // Ensure signature is a string (Base58 encoded)
+        signature,                       // Ensure signature is a string (Base58 encoded)
       })),
     });
   }
@@ -117,11 +118,15 @@ class Transaction {
     );
   }
 
+  // Add transaction details (sender, receiver, amount, etc.)
+  addTransactionDetails({ from, to, amount }) {
+    this.details = { from, to, amount };
+  }
+
   // Get an estimated fee for the transaction
   getEstimatedFee() {
     return this.instructions.length * 5000; // Example calculation
   }
 }
-
 
 export { Transaction };

@@ -1,7 +1,9 @@
 import { Keypair } from "./Keypair.js";
+import { TransactionInstruction } from "./src/TransactionInstruction.js";
+import { Transaction } from './src/Transaction.js';
+import { Blockchain } from "./src/Blockchain.js";
+import { Block } from './src/Block.js';
 import bs58 from "bs58";
-import { TransactionInstruction } from "./TransactionInstruction.js";
-import { Transaction } from "./Transaction.js";
 
 // Generate a new keypair
 const keypair = Keypair.generate();
@@ -15,11 +17,15 @@ const receiver = Keypair.generate(); // Generate receiver keypair
 // Create a new Transaction
 const transaction = new Transaction();
 
-// Populate the transaction with necessary details
+// Example: Get the latest blockhash from the blockchain (this can be from the latest block in your chain)
+const previousBlock = new Block(0, Date.now(), [], "0"); // Genesis block (this would be dynamically fetched in real use)
+const latestBlockhash = previousBlock.hash; // Use the latest block hash from the previous block
+
+// Populate the transaction with the correct details
 transaction.populate({
   feePayer: keypair.publicKey.toString(), // Fee payer is the public key of the signer
-  recentBlockhash: "sample-recent-blockhash", // Example blockhash
-  lastValidBlockHeight: 1000, // Example block height
+  recentBlockhash: latestBlockhash, // Use the latest blockhash from the blockchain
+  lastValidBlockHeight: 1000, // Example block height, adjust logic if needed
 });
 
 // Create a TransactionInstruction using simplified data
@@ -53,4 +59,39 @@ if (!instruction.isValid()) {
   // Example of deserialization (optional, for debugging)
   const deserializedTransaction = JSON.parse(serializedTransaction);
   console.log("Deserialized Transaction:", deserializedTransaction);
+
+  // --- Integrating with the Block class ---
+
+  // Create a new block, adding the transaction to it
+  const newBlock = new Block(1, Date.now(), [], previousBlock.hash);
+
+  // Add the transaction to the block
+  newBlock.addTransaction(transaction);
+
+  console.log("New Block Hash:", newBlock.hash);
+  console.log("Block Transactions:", newBlock.transactions);
+
+  // Validate the new block
+  try {
+    const isValidBlock = newBlock.isValid(previousBlock);
+    console.log("New block is valid:", isValidBlock);
+  } catch (error) {
+    console.error("Block validation error:", error.message);
+  }
+
+  // --- Integrating with the Blockchain class ---
+  const blockchain = new Blockchain("Virtron Blockchain");
+
+  // Add the block to the blockchain
+  blockchain.addBlock(newBlock);
+
+  // Check if the blockchain is valid
+  const isBlockchainValid = blockchain.isChainValid();
+  console.log("Blockchain is valid:", isBlockchainValid);
+
+  // Get all blocks in the blockchain
+  const allBlocks = blockchain.getAllBlocks();
+  console.log("All Blocks in the Blockchain:", allBlocks);
+
+
 }
