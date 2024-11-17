@@ -51,6 +51,12 @@ async function testBlockchain() {
   const newBlock = new Block(latestBlock.index + 1, Date.now(), [], latestBlock.hash);
   newBlock.addTransaction(transaction);
 
+  // Log the transaction details for this block
+  console.log(`Transactions in Block ${newBlock.index}:`);
+  newBlock.transactions.forEach((tx, idx) => {
+    console.log(`  Transaction ${idx + 1}:`, tx);
+  });
+
   // Add the block to the blockchain
   await blockchain.addBlock(newBlock);
 
@@ -58,8 +64,15 @@ async function testBlockchain() {
   const isValid = await blockchain.isChainValid();
   console.log("Blockchain is valid:", isValid);
 
-  // Print the updated blockchain
-  console.log("Updated Blockchain:", await blockchain.getAllBlocks());
+  // Print the updated blockchain with transactions
+  console.log("Updated Blockchain:");
+  const updatedBlockchain = await blockchain.getAllBlocks();
+  updatedBlockchain.forEach(block => {
+    console.log(`Block ${block.index}:`);
+    block.transactions.forEach((tx, idx) => {
+      console.log(`  Transaction ${idx + 1}:`, tx);
+    });
+  });
 }
 
 testBlockchain().catch(console.error);

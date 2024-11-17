@@ -85,6 +85,16 @@ class Keypair {
   }
 
   /**
+   * Generates a new mnemonic seed phrase and a keypair.
+   * @returns {Object} An object containing the mnemonic seed phrase and the generated Keypair.
+   */
+  static generateWithSeedPhrase() {
+    const seedPhrase = bip39.generateMnemonic(); // Generate a mnemonic seed phrase
+    const keypair = Keypair.fromSeedPhrase(seedPhrase); // Generate keypair from seed phrase
+    return { seedPhrase, keypair };
+  }
+
+  /**
    * Signs a message and returns a Base58-encoded signature.
    * @param {string} message - The message to sign.
    * @returns {string} The Base58-encoded signature.

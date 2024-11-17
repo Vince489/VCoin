@@ -46,7 +46,7 @@ async loadChain() {
   }
 
   createGenesisBlock() {
-    const genesisBlock = new Block(0, Date.now().toString(), [], '0');
+    const genesisBlock = new Block(0, Date.now(), [], '0');  // Use Date.now() as a number
     genesisBlock.hash = genesisBlock.calculateHash();
     return genesisBlock;
   }
